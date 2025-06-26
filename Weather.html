@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to right, #00c6ff, #0072ff);
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+        }
+
+        #locationInput {
+            margin-bottom: 20px;
+        }
+
+        input {
+            padding: 10px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            background-color: #0072ff;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #005bb5;
+        }
+
+        #weatherInfo h2,
+        #weatherInfo p {
+            margin: 10px 0;
+            font-size: 24px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        #icon {
+            width: 100px;
+            height: 100px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Weather App</h1>
+        <div id="locationInput">
+            <input type="text" id="city" placeholder="Enter city name">
+            <button onclick="getWeatherByCity()">Get Weather</button>
+        </div>
+        <div id="weatherInfo">
+            <h2 id="location"></h2>
+            <img id="icon" src="" alt="Weather Icon">
+            <p id="description"></p>
+            <p id="temperature"></p>
+            <p id="humidity"></p>
+            <p id="wind"></p>
+        </div>
+    </div>
+    <script>
+        const apiKey = '109cf3dbe0743b8cb81ff2d098c914a2';
+
+        function getWeatherByCity() {
+            const city = document.getElementById('city').value;
+            if (city) {
+                fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`)
+                    .then(response => response.json())
+                    .then(data => displayWeather(data))
+                    .catch(error => console.error('Error fetching weather data:', error));
+            }
+        }
+
+        function displayWeather(data) {
+            if (data.cod === 200) {
+                document.getElementById('location').innerText = `${data.name}, ${data.sys.country}`;
+                document.getElementById('description').innerText = data.weather[0].description;
+                document.getElementById('temperature').innerText = `Temperature: ${data.main.temp}°C`;
+                document.getElementById('humidity').innerText = `Humidity: ${data.main.humidity}%`;
+                document.getElementById('wind').innerText = `Wind Speed: ${data.wind.speed} m/s`;
+
+                const iconCode = data.weather[0].icon;
+                const iconUrl = `http://openweathermap.org/img/wn/${iconCode}@2x.png`;
+                document.getElementById('icon').src = iconUrl;
+                document.getElementById('icon').alt = data.weather[0].description;
+            } else {
+                document.getElementById('location').innerText = 'City not found';
+                document.getElementById('description').innerText = '';
+                document.getElementById('temperature').innerText = '';
+                document.getElementById('humidity').innerText = '';
+                document.getElementById('wind').innerText = '';
+                document.getElementById('icon').src = '';
+                document.getElementById('icon').alt = '';
+            }
+        }
+
+        window.onload = () => {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(position => {
+                    const { latitude, longitude } = position.coords;
+                    fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${apiKey}&units=metric`)
+                        .then(response => response.json())
+                        .then(data => displayWeather(data))
+                        .catch(error => console.error('Error fetching weather data:', error));
+                });
+            } else {
+                console.error('Geolocation is not supported by this browser.');
+            }
+        };
+    </script>
+</body>
+</html>
